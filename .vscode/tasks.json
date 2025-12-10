@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure CMake",
+            "type": "shell",
+            "command": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=/opt/retro68/m68k-apple-macos-toolchain.cmake",
+            "group": "build"
+        },
+        {
+            "label": "Build All",
+            "type": "shell",
+            "command": "cmake --build build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": "Configure CMake"
+        }
+    ]
+}

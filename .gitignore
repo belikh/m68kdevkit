@@ -1,0 +1,9 @@
+build/
+.vscode/
+*.o
+*.obj
+*.dsk
+*.bin
+*.ap_
+*.map
+__pycache__/
