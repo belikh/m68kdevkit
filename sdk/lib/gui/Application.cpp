@@ -30,8 +30,6 @@ void Application::run() {
     EventRecord event;
 
     while (running) {
-        // WaitNextEvent with 0 sleep for max performance if we have an idle task
-        // otherwise a small sleep to be nice to the OS.
         int sleepTime = (idleTask != nullptr) ? 0 : 60;
 
         bool gotEvent = WaitNextEvent(everyEvent, &event, sleepTime, NULL);
@@ -45,10 +43,18 @@ void Application::run() {
                         DragWindow(win, event.where, &qd.screenBits.bounds);
                     } else if (part == inGoAway) {
                         if (TrackGoAway(win, event.where)) {
+                             // Find associated C++ window and maybe close it
+                             // For now, simpler to just quit
                              running = false;
                         }
                     } else if (part == inContent) {
                         SelectWindow(win);
+                        // Find the C++ window object
+                        for(auto& w : windows) {
+                            if (w->getNativeHandle() == win) {
+                                w->handleContentClick(event.where.h, event.where.v);
+                            }
+                        }
                     }
                     break;
                 }
@@ -74,7 +80,6 @@ void Application::run() {
             }
         }
 
-        // Run idle task
         if (idleTask) {
             idleTask();
         }

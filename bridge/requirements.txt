@@ -1,4 +1,4 @@
-monocypher
+pymonocypher
 httpx
 mkdocs
 mkdocs-material

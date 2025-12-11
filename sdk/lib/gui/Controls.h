@@ -6,21 +6,19 @@
 #include <MacTypes.h>
 #include <QuickDraw.h>
 #include <Controls.h>
+#include <functional>
 
 namespace MacModern {
 namespace GUI {
 
 class Button : public Widget {
 public:
-    Button(const std::string& label, int x, int y, int w, int h)
-        : Widget(x, y, w, h), label(label) {}
+    Button(const std::string& label, int x, int y, int w, int h, std::function<void()> onClick = nullptr)
+        : Widget(x, y, w, h), label(label), onClick(onClick) {}
 
     void draw() override {
         Rect r;
         SetRect(&r, x, y, x + w, y + h);
-
-        // Simple manual draw for now as Control Manager needs more setup attached to window
-        // In a full SDK we would use NewControl
 
         FrameRoundRect(&r, 16, 16);
         MoveTo(x + 10, y + 20);
@@ -31,14 +29,24 @@ public:
         DrawString(pStr);
     }
 
+    bool handleMouseDown(int localX, int localY) override {
+        if (contains(localX, localY)) {
+            // Visual feedback could go here (invert rect)
+            if (onClick) onClick();
+            return true;
+        }
+        return false;
+    }
+
 private:
     std::string label;
+    std::function<void()> onClick;
 };
 
 class Label : public Widget {
 public:
     Label(const std::string& text, int x, int y)
-        : Widget(x, y, 0, 0), text(text) {} // w/h ignored for simple label
+        : Widget(x, y, 0, 0), text(text) {}
 
     void draw() override {
         MoveTo(x, y + 12);
@@ -46,6 +54,11 @@ public:
         pStr[0] = text.length();
         std::memcpy(&pStr[1], text.c_str(), text.length());
         DrawString(pStr);
+    }
+
+    void setText(const std::string& t) {
+        text = t;
+        // In a real system, trigger redraw
     }
 
 private:

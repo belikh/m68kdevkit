@@ -2,15 +2,26 @@
 #include <cstring>
 #include <stdexcept>
 #include <Events.h> /* For TickCount */
+#include <stdlib.h> /* For rand/srand */
 
 namespace MacModern {
 namespace Crypto {
 
 SecureSocket::SecureSocket(Net::Socket* underlyingSocket, const std::array<uint8_t, 32>& psk)
     : socket(underlyingSocket), key(psk), recv_ctr(0) {
-    // Initialize start counter with randomness from system uptime
-    // This reduces chance of nonce reuse on restarts
-    send_ctr = TickCount();
+
+    // Initialize a pseudo-random nonce prefix for this session
+    // This is not cryptographically secure but prevents trivial nonce reuse across restarts
+    // if the clock has advanced.
+    srand(TickCount());
+
+    // We use a 24-byte nonce (XChaCha20).
+    // We will use the first 16 bytes as a random session prefix,
+    // and the last 8 bytes as a counter.
+    for(int i=0; i<16; ++i) {
+        session_prefix[i] = (uint8_t)(rand() % 256);
+    }
+    send_ctr = 0;
 }
 
 SecureSocket::~SecureSocket() {
@@ -24,10 +35,10 @@ bool SecureSocket::connect(const std::string& host, uint16_t port) {
 bool SecureSocket::send(const std::vector<uint8_t>& data) {
     if (!socket->isConnected()) return false;
 
-    // Prepare nonce (using counter)
-    uint8_t nonce[24] = {0};
-    // Put counter into first 8 bytes of nonce
-    std::memcpy(nonce, &send_ctr, sizeof(send_ctr));
+    // Prepare nonce
+    uint8_t nonce[24];
+    std::memcpy(nonce, session_prefix, 16);
+    std::memcpy(nonce + 16, &send_ctr, 8);
     send_ctr++;
 
     // Prepare buffer
@@ -46,7 +57,7 @@ bool SecureSocket::send(const std::vector<uint8_t>& data) {
 
     uint8_t* ptr = frame.data() + 4;
 
-    // Write Nonce
+    // Write Nonce (Send full nonce for simplicity, though we could optimize)
     std::memcpy(ptr, nonce, 24);
     ptr += 24;
 
