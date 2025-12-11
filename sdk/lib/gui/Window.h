@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <MacWindows.h>
+#include <QDOffscreen.h>
 
 namespace MacModern {
 namespace GUI {
@@ -25,11 +26,16 @@ public:
 
     WindowPtr getNativeHandle() const { return windowRef; }
 
+    void enableDoubleBuffering();
+
 private:
     WindowPtr windowRef;
     std::string title;
     int width, height;
     std::vector<std::shared_ptr<Widget>> widgets;
+
+    bool doubleBuffered;
+    GWorldPtr backBuffer;
 };
 
 }
