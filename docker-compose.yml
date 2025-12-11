@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # The main build environment (Retro68)
+  # This matches the Dev Container environment
+  build:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace
+    command: sleep infinity
+    working_dir: /workspace
+
+  # The Python Bridge Server
+  # Runs the python daemon to proxy requests
+  bridge:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/bridge
+    command: python3 server.py
+    ports:
+      - "8080:8080" # Example port for the bridge
+    depends_on:
+      - build
+
+  # Documentation Server (MkDocs)
+  docs:
+    image: python:3.9-slim
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: sh -c "pip install mkdocs mkdocs-material && mkdocs serve -a 0.0.0.0:8000"
+    ports:
+      - "8000:8000"

@@ -1,0 +1,4 @@
+pymonocypher
+httpx
+mkdocs
+mkdocs-material
