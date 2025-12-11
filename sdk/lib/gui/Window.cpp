@@ -19,7 +19,6 @@ Window::Window(const std::string& title, int width, int height)
     pTitle[0] = (unsigned char)title.length();
     std::memcpy(&pTitle[1], title.c_str(), title.length());
 
-    // Create new window (documentProc = standard window)
     windowRef = NewCWindow(NULL, &bounds, pTitle, false, documentProc, (WindowPtr)-1, true, 0);
 }
 
@@ -44,6 +43,18 @@ void Window::draw() {
 
     for (auto& widget : widgets) {
         widget->draw();
+    }
+}
+
+void Window::handleContentClick(int globalX, int globalY) {
+    SetPort(windowRef);
+    Point pt = { (short)globalY, (short)globalX };
+    GlobalToLocal(&pt);
+
+    for (auto& widget : widgets) {
+        if (widget->handleMouseDown(pt.h, pt.v)) {
+            break;
+        }
     }
 }
 

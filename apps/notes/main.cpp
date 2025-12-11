@@ -3,11 +3,9 @@
 #include "Controls.h"
 #include <fstream>
 #include <sstream>
+#include <ctime>
 
 using namespace MacModern::GUI;
-
-// Very simple text editor using standard fstream
-// Notes are saved to "Note.txt" in the app folder
 
 class NotesApp {
 public:
@@ -17,32 +15,40 @@ public:
         auto win = Window::create("Notes", 400, 300);
         win->add(std::make_shared<Label>("Simple Note Taker", 20, 20));
 
-        // Load existing
+        contentLabel = std::make_shared<Label>("Loading...", 20, 50);
+        reload();
+        win->add(contentLabel);
+
+        auto btn = std::make_shared<Button>("Save Timestamp", 20, 100, 150, 40, [this]() {
+            std::ofstream outFile("Note.txt", std::ios::app);
+            outFile << "Note entry at " << std::time(nullptr) << "\n";
+            outFile.close();
+            this->reload();
+            SysBeep(1);
+        });
+
+        win->add(btn);
+
+        Application::addWindow(win);
+        Application::run();
+    }
+
+    void reload() {
         std::ifstream inFile("Note.txt");
-        std::string content = "Type here...";
+        std::string content = "Empty.";
         if (inFile.good()) {
             std::stringstream buffer;
             buffer << inFile.rdbuf();
             content = buffer.str();
         }
-
-        // In a real GUI we'd have a TextArea.
-        // For this demo we just show the content in a Label (truncated)
-        // and a button to "Save" dummy text.
-
-        auto lbl = std::make_shared<Label>(content.substr(0, 50), 20, 50);
-        win->add(lbl);
-
-        // Simulating edit
-        auto btn = std::make_shared<Button>("Save Timestamp", 20, 100, 150, 40);
-        win->add(btn);
-        // We'd hook up callback to write to file:
-        // std::ofstream outFile("Note.txt");
-        // outFile << "Timestamp: " << ...;
-
-        Application::addWindow(win);
-        Application::run();
+        // Truncate for label display
+        if (content.length() > 50) content = content.substr(0, 47) + "...";
+        contentLabel->setText(content);
+        Application::forceRedraw();
     }
+
+private:
+    std::shared_ptr<Label> contentLabel;
 };
 
 int main() {

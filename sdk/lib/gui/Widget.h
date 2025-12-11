@@ -12,6 +12,13 @@ public:
 
     virtual void draw() = 0;
 
+    // Returns true if the event was handled
+    virtual bool handleMouseDown(int localX, int localY) { return false; }
+
+    bool contains(int localX, int localY) const {
+        return (localX >= x && localX < x + w && localY >= y && localY < y + h);
+    }
+
 protected:
     int x, y, w, h;
 };

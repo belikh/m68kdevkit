@@ -21,6 +21,8 @@ public:
     void add(std::shared_ptr<Widget> widget);
     void draw();
 
+    void handleContentClick(int globalX, int globalY);
+
     WindowPtr getNativeHandle() const { return windowRef; }
 
 private:
