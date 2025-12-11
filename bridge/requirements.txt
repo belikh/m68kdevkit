@@ -1,0 +1,4 @@
+monocypher
+httpx
+mkdocs
+mkdocs-material
