@@ -63,8 +63,16 @@ public:
                 Rect dstRect;
                 SetRect(&dstRect, x + ballX, y + ballY, x + ballX + 20, y + ballY + 20);
 
-                // Assuming we are already in the correct port (Window::draw handles it)
-                CopyBits((BitMap*)*srcPix, &qd.thePort->portBits, &srcRect, &dstRect, srcCopy, NULL);
+                // Get destination pixmap properly using GetPortPixMap
+                CGrafPtr destPort = (CGrafPtr)qd.thePort;
+                PixMapHandle destPix = GetPortPixMap(destPort);
+
+                // Need to lock dst if it's offscreen?
+                // Application/Window handles locking the backBuffer if double buffered.
+                // If direct screen, it's usually always accessible or handled by OS.
+
+                // CopyBits from GWorld to current port
+                CopyBits((BitMap*)*srcPix, (BitMap*)*destPix, &srcRect, &dstRect, srcCopy, NULL);
 
                 UnlockPixels(srcPix);
             }
