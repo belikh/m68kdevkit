@@ -51,42 +51,41 @@ void Window::enableDoubleBuffering() {
 }
 
 void Window::draw() {
-    CGrafPtr port = (CGrafPtr)windowRef; // Assuming Color QuickDraw
+    CGrafPtr port = (CGrafPtr)windowRef;
 
     if (doubleBuffered && backBuffer) {
-        // Draw to offscreen
         GDHandle oldDevice;
         GWorldPtr oldPort;
         GetGWorld(&oldPort, &oldDevice);
         SetGWorld(backBuffer, NULL);
 
-        // Lock pixels
         PixMapHandle pixMap = GetGWorldPixMap(backBuffer);
         if (LockPixels(pixMap)) {
-            EraseRect(&windowRef->portRect); // Erase the GWorld
+            EraseRect(&windowRef->portRect);
 
             for (auto& widget : widgets) {
-                widget->draw();
+                if(widget->isVisible()) widget->draw();
             }
 
             UnlockPixels(pixMap);
 
-            // Blit to screen
             SetGWorld(oldPort, oldDevice);
             SetPort(windowRef);
 
             Rect src = windowRef->portRect;
             Rect dst = windowRef->portRect;
-            CopyBits((BitMap*)*pixMap, (BitMap*)*port->portPixMap, &src, &dst, srcCopy, NULL);
+
+            // Safe copy
+            PixMapHandle portPix = GetPortPixMap(port);
+            CopyBits((BitMap*)*pixMap, (BitMap*)*portPix, &src, &dst, srcCopy, NULL);
         } else {
-            // Fallback
             SetGWorld(oldPort, oldDevice);
         }
     } else {
         SetPort(windowRef);
         EraseRect(&windowRef->portRect);
         for (auto& widget : widgets) {
-            widget->draw();
+             if(widget->isVisible()) widget->draw();
         }
     }
 }
@@ -96,11 +95,40 @@ void Window::handleContentClick(int globalX, int globalY) {
     Point pt = { (short)globalY, (short)globalX };
     GlobalToLocal(&pt);
 
+    bool handled = false;
     for (auto& widget : widgets) {
-        if (widget->handleMouseDown(pt.h, pt.v)) {
+        if (widget->isVisible() && widget->handleMouseDown(pt.h, pt.v)) {
+            setFocus(widget);
+            handled = true;
             break;
         }
     }
+
+    if (!handled) {
+        setFocus(nullptr);
+    }
+}
+
+void Window::handleKeyDown(char key, int modifiers) {
+    if (focusedWidget) {
+        SetPort(windowRef);
+        focusedWidget->handleKeyDown(key);
+    }
+}
+
+void Window::handleIdle() {
+    SetPort(windowRef);
+    for (auto& widget : widgets) {
+        if(widget->isVisible()) widget->handleIdle();
+    }
+}
+
+void Window::setFocus(std::shared_ptr<Widget> widget) {
+    if (focusedWidget == widget) return;
+
+    if (focusedWidget) focusedWidget->onBlur();
+    focusedWidget = widget;
+    if (focusedWidget) focusedWidget->onFocus();
 }
 
 }

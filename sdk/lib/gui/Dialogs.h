@@ -11,10 +11,9 @@ class Dialogs {
 public:
     static std::string getOpenFilename() {
         StandardFileReply reply;
-        SFTypeList types; // All types
+        SFTypeList types;
         StandardGetFile(NULL, -1, types, &reply);
         if (reply.sfGood) {
-            // Convert Str255 to std::string
             unsigned char len = reply.sfFile.name[0];
             return std::string((char*)&reply.sfFile.name[1], len);
         }

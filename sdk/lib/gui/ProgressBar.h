@@ -13,7 +13,6 @@ public:
 
     void setProgress(float p) {
         progress = std::max(0.0f, std::min(1.0f, p));
-        // Trigger redraw in real system
     }
 
     void setIndeterminate(bool i) {
@@ -28,8 +27,6 @@ public:
         EraseRect(&r);
 
         if (indeterminate) {
-            // Draw barber pole or bouncing box
-            // Simplified: Fill 50%
             r.right = r.left + (w/2);
             FillRect(&r, &qd.ltGray);
         } else {

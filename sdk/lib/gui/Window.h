@@ -22,17 +22,24 @@ public:
     void add(std::shared_ptr<Widget> widget);
     void draw();
 
+    // Events
     void handleContentClick(int globalX, int globalY);
+    void handleKeyDown(char key, int modifiers);
+    void handleIdle();
 
     WindowPtr getNativeHandle() const { return windowRef; }
 
     void enableDoubleBuffering();
+
+    // Focus
+    void setFocus(std::shared_ptr<Widget> widget);
 
 private:
     WindowPtr windowRef;
     std::string title;
     int width, height;
     std::vector<std::shared_ptr<Widget>> widgets;
+    std::shared_ptr<Widget> focusedWidget;
 
     bool doubleBuffered;
     GWorldPtr backBuffer;

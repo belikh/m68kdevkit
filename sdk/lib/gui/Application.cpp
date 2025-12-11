@@ -43,13 +43,10 @@ void Application::run() {
                         DragWindow(win, event.where, &qd.screenBits.bounds);
                     } else if (part == inGoAway) {
                         if (TrackGoAway(win, event.where)) {
-                             // Find associated C++ window and maybe close it
-                             // For now, simpler to just quit
                              running = false;
                         }
                     } else if (part == inContent) {
                         SelectWindow(win);
-                        // Find the C++ window object
                         for(auto& w : windows) {
                             if (w->getNativeHandle() == win) {
                                 w->handleContentClick(event.where.h, event.where.v);
@@ -63,6 +60,13 @@ void Application::run() {
                      char key = event.message & charCodeMask;
                      if (event.modifiers & cmdKey) {
                          if (key == 'q' || key == 'Q') running = false;
+                     } else {
+                         WindowPtr front = FrontWindow();
+                         for(auto& w : windows) {
+                            if (w->getNativeHandle() == front) {
+                                w->handleKeyDown(key, event.modifiers);
+                            }
+                        }
                      }
                      break;
                 }
@@ -78,6 +82,10 @@ void Application::run() {
                     break;
                 }
             }
+        }
+
+        for(auto& w : windows) {
+            w->handleIdle();
         }
 
         if (idleTask) {

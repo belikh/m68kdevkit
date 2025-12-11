@@ -29,43 +29,14 @@ public:
         return false;
     }
 
-    // Propagate idle
     void handleIdle() override {
         for (auto& c : children) {
             if (c->isVisible()) c->handleIdle();
         }
     }
 
-    // Helper to find focusable widget
-    // ...
-
 protected:
     std::vector<std::shared_ptr<Widget>> children;
-};
-
-class VStack : public Container {
-public:
-    VStack(int spacing = 10) : spacing(spacing) {
-        // Auto-sizing logic would go here in a real system
-    }
-
-    void layout(int startX, int startY, int width) {
-        int currentY = startY;
-        for (auto& c : children) {
-            // Simplified: Assume children have fixed height or we set them
-            // In a real system: c->measure()
-            // Here we just set their position.
-            // We need to access protected members x,y.
-            // Since we are friendly or base, we need setters in Widget?
-            // Widget members are protected.
-
-            // We need a way to set geometry on children.
-            // Let's assume we can static_cast or friend, or add setGeometry to Widget.
-        }
-    }
-
-private:
-    int spacing;
 };
 
 }

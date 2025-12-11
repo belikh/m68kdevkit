@@ -29,9 +29,9 @@ public:
         // Use Layout
         auto layout = std::make_shared<VStack>(0, 0, 500, 400, 10);
 
-        layout->addChild(std::make_shared<Label>("Ask the AI:", 0, 0)); // Coords ignored by layout
+        layout->addChild(std::make_shared<Label>("Ask the AI:", 0, 0));
 
-        inputField = std::make_shared<TextField>(0, 0, 0, 60, "Why is the sky blue?"); // H fixed
+        inputField = std::make_shared<TextField>(0, 0, 0, 60, "Why is the sky blue?");
         layout->addChild(inputField);
 
         statusLabel = std::make_shared<Label>("Ready.", 0, 0);
@@ -51,9 +51,6 @@ public:
         responseField = std::make_shared<TextField>(0, 0, 0, 120, "");
         layout->addChild(responseField);
 
-        // Window needs a root container support, but for now we manually add
-        // Wait, window logic expects widgets. We can add the layout itself as a widget!
-        // Container inherits Widget.
         win->add(layout);
 
         Application::addWindow(win);

@@ -9,7 +9,6 @@ class Layout : public Container {
 public:
     Layout(int x, int y, int w, int h) : Container(x, y, w, h) {}
 
-    // Force layout update
     virtual void updateLayout() = 0;
 
     void addChild(std::shared_ptr<Widget> w) override {
