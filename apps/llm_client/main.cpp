@@ -4,6 +4,7 @@
 #include "TextField.h"
 #include "ProgressBar.h"
 #include "Layout.h"
+#include "ListBox.h"
 #include "SecureSocket.h"
 #include "OpenTransportSocket.h"
 #include <string>
@@ -26,63 +27,60 @@ public:
 
         auto win = Window::create("LLM Client", 500, 400);
 
-        // Use Layout
         auto layout = std::make_shared<VStack>(0, 0, 500, 400, 10);
 
-        layout->addChild(std::make_shared<Label>("Ask the AI:", 0, 0));
+        layout->addChild(std::make_shared<Label>("Chat History:", 0, 0));
 
-        inputField = std::make_shared<TextField>(0, 0, 0, 60, "Why is the sky blue?");
+        historyList = std::make_shared<ListBox>(0, 0, 0, 200);
+        layout->addChild(historyList);
+
+        layout->addChild(std::make_shared<Label>("Prompt:", 0, 0));
+        inputField = std::make_shared<TextField>(0, 0, 0, 40, "Hello");
         layout->addChild(inputField);
 
-        statusLabel = std::make_shared<Label>("Ready.", 0, 0);
-        layout->addChild(statusLabel);
-
-        progressBar = std::make_shared<ProgressBar>(0, 0, 0, 20);
-        progressBar->setVisible(false);
-        layout->addChild(progressBar);
-
-        auto btn = std::make_shared<Button>("Send", 0, 0, 0, 40, [this]() {
+        auto btn = std::make_shared<Button>("Send", 0, 0, 0, 30, [this]() {
             this->sendPrompt();
         });
         layout->addChild(btn);
 
-        layout->addChild(std::make_shared<Label>("Response:", 0, 0));
+        progressBar = std::make_shared<ProgressBar>(0, 0, 0, 10);
+        progressBar->setVisible(false);
+        layout->addChild(progressBar);
 
-        responseField = std::make_shared<TextField>(0, 0, 0, 120, "");
-        layout->addChild(responseField);
+        statusLabel = std::make_shared<Label>("Ready.", 0, 0);
+        layout->addChild(statusLabel);
 
         win->add(layout);
-
         Application::addWindow(win);
         Application::run();
     }
 
     void sendPrompt() {
-        statusLabel->setText("Sending...");
+        std::string prompt = inputField->getText();
+        historyList->addItem("You: " + prompt);
+        inputField->setText("");
+
         progressBar->setVisible(true);
         progressBar->setIndeterminate(true);
+        statusLabel->setText("Thinking...");
         Application::forceRedraw();
 
-        std::string prompt = inputField->getText();
-        std::string req = "POST https://api.openai.com/v1/chat/completions {\"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \"" + prompt + "\"}]}";
-
+        // Network call...
         OpenTransportSocket otSock;
         SecureSocket sock(&otSock, PSK);
 
         if (sock.connect("192.168.1.10", 8080)) {
-            std::vector<uint8_t> data(req.begin(), req.end());
-            sock.send(data);
-
-            auto resp = sock.receive();
-            if (resp.empty()) {
-                statusLabel->setText("Error receiving.");
-            } else {
-                std::string respStr(resp.begin(), resp.end());
-                statusLabel->setText("Done.");
-                responseField->setText(respStr);
-            }
-        } else {
-            statusLabel->setText("Connect failed.");
+             std::string req = "POST https://api.openai.com/v1/chat/completions {\"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \"" + prompt + "\"}]}";
+             std::vector<uint8_t> data(req.begin(), req.end());
+             sock.send(data);
+             auto resp = sock.receive();
+             if (!resp.empty()) {
+                 std::string respStr(resp.begin(), resp.end());
+                 historyList->addItem("AI: " + respStr);
+                 statusLabel->setText("Done.");
+             } else {
+                 statusLabel->setText("Error.");
+             }
         }
 
         progressBar->setVisible(false);
@@ -90,9 +88,9 @@ public:
     }
 
 private:
-    std::shared_ptr<Label> statusLabel;
+    std::shared_ptr<ListBox> historyList;
     std::shared_ptr<TextField> inputField;
-    std::shared_ptr<TextField> responseField;
+    std::shared_ptr<Label> statusLabel;
     std::shared_ptr<ProgressBar> progressBar;
 };
 

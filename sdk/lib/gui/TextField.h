@@ -15,7 +15,6 @@ public:
 
         Rect r;
         SetRect(&r, x, y, x + w, y + h);
-
         te = nullptr;
         pendingText = initialText;
     }
@@ -30,7 +29,6 @@ public:
         FrameRect(&r);
         InsetRect(&r, 1, 1);
         EraseRect(&r);
-
         ensureTE();
         TEUpdate(&r, te);
     }
@@ -65,10 +63,8 @@ public:
 
     std::string getText() {
         if (!te) return pendingText;
-
         CharsHandle hText = (*te)->hText;
         long len = (*te)->teLength;
-
         HLock((Handle)hText);
         std::string s(*hText, len);
         HUnlock((Handle)hText);
@@ -82,6 +78,12 @@ public:
             pendingText = text;
         }
     }
+
+    // Clipboard support
+    void cut() { if (te) TECut(te); }
+    void copy() { if (te) TECopy(te); }
+    void paste() { if (te) TEPaste(te); }
+    void clear() { if (te) TEDelete(te); }
 
 private:
     void ensureTE() {

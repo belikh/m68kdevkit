@@ -33,6 +33,7 @@ public:
 
     // Focus
     void setFocus(std::shared_ptr<Widget> widget);
+    std::shared_ptr<Widget> getFocusedWidget() const { return focusedWidget; }
 
 private:
     WindowPtr windowRef;
